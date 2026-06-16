@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - master
-  workflow_dispatch:  # Allows manual trigger from GitHub UI
+  workflow_dispatch:
 
 jobs:
   build-android:
@@ -17,47 +17,50 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Setup Node.js
-      - name: Setup Node.js
+      # 2. Setup Node.js 22 (required by Capacitor 8)
+      - name: Setup Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'npm'
+          node-version: '22.x'
 
-      # 3. Install dependencies
+      # 3. Verify Node version
+      - name: Check Node version
+        run: node --version
+
+      # 4. Install dependencies
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
-      # 4. Build the web app (Vite)
+      # 5. Build the web app (Vite)
       - name: Build web app
         run: npm run build
 
-      # 5. Sync Capacitor to Android
+      # 6. Sync Capacitor to Android
       - name: Sync Capacitor Android
         run: npx cap sync android
 
-      # 6. Setup Java (required for Gradle)
+      # 7. Setup Java 17 (required for Gradle)
       - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      # 7. Setup Android SDK
+      # 8. Setup Android SDK
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      # 8. Make gradlew executable
+      # 9. Make gradlew executable
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
-      # 9. Build the Debug APK
+      # 10. Build the Debug APK
       - name: Build Debug APK
         run: |
           cd android
           ./gradlew assembleDebug --no-daemon
 
-      # 10. Upload APK as artifact (download from GitHub)
+      # 11. Upload APK as downloadable artifact
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
