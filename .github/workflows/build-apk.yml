@@ -35,32 +35,40 @@ jobs:
       - name: Build web app
         run: npm run build
 
-      # 6. Sync Capacitor to Android
-      - name: Sync Capacitor Android
-        run: npx cap sync android
-
-      # 7. Setup Java 17 (required for Gradle)
+      # 6. Setup Java 17 (required for Gradle) - BEFORE cap sync
       - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      # 8. Setup Android SDK
+      # 7. Setup Android SDK
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      # 9. Make gradlew executable
+      # 8. Write SDK path to local.properties so Gradle can find it
+      - name: Set Android SDK path in local.properties
+        run: |
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
+          cat android/local.properties
+
+      # 9. Sync Capacitor to Android
+      - name: Sync Capacitor Android
+        run: npx cap sync android
+
+      # 10. Make gradlew executable
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
-      # 10. Build the Debug APK
+      # 11. Build the Debug APK
       - name: Build Debug APK
         run: |
           cd android
           ./gradlew assembleDebug --no-daemon
+        env:
+          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
 
-      # 11. Upload APK as downloadable artifact
+      # 12. Upload APK as downloadable artifact
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
